@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Poll;
+use App\Models\PollOption;
 use Illuminate\Http\Request;
 
 class ApiPollController extends Controller
@@ -32,6 +33,46 @@ class ApiPollController extends Controller
         }
 
         return $poll;
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'question' => 'required|string|max:255',
+            'options' => 'required|array|min:2',
+            'options.*' => 'required|string|max:255',
+            'duration' => 'nullable',
+        ]);
+
+        $user = $request->user();
+
+        $poll = new Poll();
+        $poll->user()->associate($user);
+        $poll->title = $validated['title'] ?? null;
+        $poll->question = $validated['question'];
+        $poll->is_draft = $request->boolean('is_draft');
+        $poll->allow_multiple_choices = $request->boolean('allow_multiple_choices');
+        $poll->allow_vote_change = $request->boolean('allow_vote_change');
+        $poll->results_public = $request->boolean('results_public');
+        $poll->duration = $validated['duration'] ?? null;
+        $poll->secret_token = bin2hex(random_bytes(16));
+
+        if (!$poll->is_draft) {
+            $poll->started_at = now();
+            $poll->ends_at = $poll->duration ? now()->parse('@' . (now()->timestamp + $poll->duration)) : null;
+        }
+
+        $poll->save();
+
+        foreach ($validated['options'] as $label) {
+            $option = new PollOption();
+            $option->poll()->associate($poll);
+            $option->label = $label;
+            $option->save();
+        }
+
+        return Poll::with('options')->where('id', $poll->id)->first();
     }
 
     /**
