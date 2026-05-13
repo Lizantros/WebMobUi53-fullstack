@@ -75,6 +75,52 @@ class ApiPollController extends Controller
         return Poll::with('options')->where('id', $poll->id)->first();
     }
 
+    public function update(Request $request, int $id)
+    {
+        $poll = Poll::where('id', $id)->where('user_id', $request->user()->id)->first();
+
+        if (!$poll) {
+            return response()->json(['message' => 'Poll not found.'], 404);
+        }
+
+        if (!$poll->is_draft) {
+            return response()->json(['message' => 'Poll already started.'], 422);
+        }
+
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'question' => 'required|string|max:255',
+            'options' => 'required|array|min:2',
+            'options.*' => 'required|string|max:255',
+            'duration' => 'nullable',
+        ]);
+
+        $poll->title = $validated['title'] ?? null;
+        $poll->question = $validated['question'];
+        $poll->allow_multiple_choices = $request->boolean('allow_multiple_choices');
+        $poll->allow_vote_change = $request->boolean('allow_vote_change');
+        $poll->results_public = $request->boolean('results_public');
+        $poll->duration = $validated['duration'] ?? null;
+        $poll->is_draft = $request->boolean('is_draft');
+
+        if (!$poll->is_draft) {
+            $poll->started_at = now();
+            $poll->ends_at = $poll->duration ? now()->parse('@' . (now()->timestamp + $poll->duration)) : null;
+        }
+
+        $poll->save();
+
+        $poll->options()->delete();
+        foreach ($validated['options'] as $label) {
+            $option = new PollOption();
+            $option->poll()->associate($poll);
+            $option->label = $label;
+            $option->save();
+        }
+
+        return Poll::with('options')->where('id', $poll->id)->first();
+    }
+
     /**
      * Remove the specified poll.
      */
