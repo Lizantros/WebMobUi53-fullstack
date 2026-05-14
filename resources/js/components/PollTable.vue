@@ -1,11 +1,16 @@
 <script setup>
   import { usePollStore } from '@/stores/usePollStore';
 
-  const { polls, deletePoll, openEdit } = usePollStore();
+  const { polls, deletePoll, openEdit, launchPoll } = usePollStore();
 
   async function onDelete(id) {
     if (!confirm('Supprimer ce sondage ?')) return;
     await deletePoll(id);
+  }
+
+  async function onLaunch(poll) {
+    if (!confirm('Lancer ce sondage maintenant ?')) return;
+    await launchPoll(poll);
   }
 </script>
 
@@ -29,6 +34,7 @@
           <td class="px-3 py-2">{{ poll.is_draft ? 'Brouillon' : 'Lance' }}</td>
           <td class="px-3 py-2 flex flex-wrap gap-2">
             <button v-if="poll.is_draft" @click="openEdit(poll)" class="px-2 py-1 bg-gray-200 rounded text-sm">Modifier</button>
+            <button v-if="poll.is_draft" @click="onLaunch(poll)" class="px-2 py-1 bg-teal-600 text-white rounded text-sm">Lancer</button>
             <button @click="onDelete(poll.id)" class="px-2 py-1 bg-red-600 text-white rounded text-sm">Supprimer</button>
           </td>
         </tr>
