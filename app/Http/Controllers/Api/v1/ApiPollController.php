@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Models\Poll;
 use App\Models\PollOption;
+use App\Models\PollVote;
 use Illuminate\Http\Request;
 
 class ApiPollController extends Controller
@@ -119,6 +120,86 @@ class ApiPollController extends Controller
         }
 
         return Poll::with('options')->where('id', $poll->id)->first();
+    }
+
+    public function vote(Request $request, string $token)
+    {
+        $poll = Poll::with('options')->where('secret_token', $token)->first();
+
+        if (!$poll) {
+            return response()->json(['message' => 'Poll not found.'], 404);
+        }
+
+        if ($poll->is_draft) {
+            return response()->json(['message' => 'Poll is not started.'], 422);
+        }
+
+        if ($poll->ends_at && now()->timestamp > now()->parse($poll->ends_at)->timestamp) {
+            return response()->json(['message' => 'Poll is closed.'], 422);
+        }
+
+        $validated = $request->validate([
+            'option_ids' => 'required|array|min:1',
+        ]);
+
+        $validOptionIds = [];
+        foreach ($poll->options as $option) {
+            $validOptionIds[] = $option->id;
+        }
+        foreach ($validated['option_ids'] as $oid) {
+            $found = false;
+            foreach ($validOptionIds as $vid) {
+                if ($oid == $vid) {
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                return response()->json(['message' => 'Invalid option.'], 422);
+            }
+        }
+
+        if (!$poll->allow_multiple_choices && count($validated['option_ids']) > 1) {
+            return response()->json(['message' => 'Only one option allowed.'], 422);
+        }
+
+        $user = $request->user();
+        $existing = $poll->votes()->where('user_id', $user->id)->get();
+
+        if (count($existing) > 0 && !$poll->allow_vote_change) {
+            return response()->json(['message' => 'You already voted.'], 422);
+        }
+
+        if (count($existing) > 0) {
+            $poll->votes()->where('user_id', $user->id)->delete();
+        }
+
+        foreach ($validated['option_ids'] as $oid) {
+            $vote = new PollVote();
+            $vote->poll()->associate($poll);
+            $vote->user()->associate($user);
+            $vote->poll_option_id = $oid;
+            $vote->save();
+        }
+
+        return response()->json(['message' => 'success'], 200);
+    }
+
+    public function myVote(Request $request, string $token)
+    {
+        $poll = Poll::where('secret_token', $token)->first();
+
+        if (!$poll) {
+            return response()->json(['message' => 'Poll not found.'], 404);
+        }
+
+        $votes = $poll->votes()->where('user_id', $request->user()->id)->get();
+
+        $ids = [];
+        foreach ($votes as $vote) {
+            $ids[] = $vote->poll_option_id;
+        }
+
+        return ['option_ids' => $ids];
     }
 
     /**
