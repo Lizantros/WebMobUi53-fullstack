@@ -1,77 +1,77 @@
-# HEIG-VD DévProdMéd Course - Mini-projet
+# App de sondages (Laravel + Vue)
 
-Ce dépôt contient le mini-projet à réaliser dans le cadre du cours
-_"[Développement de produit média (DévProdMéd)](https://github.com/heig-vd-devprodmed-course/heig-vd-devprodmed-course)"_
-enseigné à la
-[Haute Ecole d'Ingénierie et de Gestion du Canton de Vaud (HEIG-VD)](https://heig-vd.ch),
-Suisse.
+Mini-projet du cours DévProdMéd (HEIG-VD).
 
-## Objectif du mini-projet
+## Présentation
 
-L'objectif de ce mini-projet est de créer un réseau social simple en utilisant le
-framework [Laravel](https://laravel.com/). Ce projet permettra de mettre en pratique les concepts
-appris dans le cours.
+L'application permet à une personne connectée de créer des sondages, d'en définir les options de réponse et de configurer leur comportement : choix simple ou multiple, résultats publics ou privés, durée de disponibilité.
 
-## Pré-requis
+Une fois le sondage lancé, un lien de partage contenant un token secret est disponible. Les personnes qui ouvrent ce lien peuvent voter (si connectées) et consulter les résultats si le créateur les a rendus publics.
 
-Afin de lancer ce projet, une stack compatible avec Laravel, est requise.
+Les résultats s'affichent en direct via un polling toutes les 5 secondes, avec une visualisation sous forme de barres de progression.
 
-Voici les pré-requis nécessaires :
+## Installer
 
-- PHP >= 8.0.
-- Composer.
-- Node.js et npm.
-- Une base de données (MySQL, PostgreSQL, SQLite, etc.).
-- Un serveur web (Apache, Nginx, etc.).
+```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+php artisan storage:link
+php artisan migrate
+```
 
-[Laravel Herd](https://helm.sh/docs/charts/laravel/) est recommandé pour une installation facile de Laravel et de ses dépendances.
+Données de test (optionnel) :
+```bash
+php artisan db:seed
+```
 
-## Développement local
+## Lancer
 
-Pour développer et tester le mini-projet en local, voici les étapes à suivre :
+```bash
+composer run dev
+```
 
-1. Forker ce dépôt
+Puis ouvrir http://localhost:8000.
 
-2. Installer les dépendances avec npm et Composer :
+## Utilisation
 
-    ```bash
-    npm install && npm run build
+Le dashboard des sondages est accessible via `/polls/dashboard` (connexion requise).
 
-    composer install
-    ```
+Le système d'authentification (inscription, connexion, déconnexion) faisait déjà partie du projet de base et n'a pas été modifié.
 
-3. Copier le fichier `.env.example` en `.env`.
-4. Modifier les variables d'environnement si nécessaire (optionnel).
-5. Générer la clé d'application Laravel :
+## Choix techniques
 
-    ```bash
-    php artisan key:generate
-    ```
+### Deux applications Vue distinctes
 
-6. Créer le lien symbolique pour les fichiers téléversés :
+Le projet utilise deux points d'entrée Vue séparés (`poll-dashboard.js` et `poll-vote.js`) plutôt qu'une application unique avec routeur. Le dashboard est protégé par authentification, tandis que la page de vote est publique. Cette séparation évite de mettre en place un routeur pour gérer deux contextes très différents.
 
-    ```bash
-    php artisan storage:link
-    ```
+### Store via composable plutôt que Pinia
 
-7. Créer la base de données et exécuter les migrations :
+L'état global est géré par un composable `usePollStore` utilisant des `ref()` partagées, comme présenté dans le cours. Cette approche est plus légère pour un projet avec un seul store et évite une dépendance supplémentaire.
 
-    ```bash
-    php artisan migrate
-    ```
+### `useFetchApi` pour toutes les requêtes
 
-    S'il est nécessaire de réinitialiser la base de données, utiliser la commande `php artisan migrate:reset` puis `php artisan migrate` à nouveau.
+Le projet de base fournissait deux systèmes de fetch (`useFetchApi` et `useFetchJson`). Toutes les requêtes vers l'API utilisent `useFetchApi`, dont le pattern `fetchApi({ url, method, data })` permet de gérer simplement les opérations GET, POST, PATCH et DELETE.
 
-8. Optionnel : en mode développement, il est possible de peupler la base de données avec des données fictives :
+### Polling pour les résultats
 
-    ```bash
-    php artisan db:seed
-    ```
+Le composable `usePolling` fourni dans le cours est utilisé avec un intervalle de 5 secondes. Lorsque le sondage est en cours, le frontend appelle régulièrement l'API pour rafraîchir les données. Le polling s'arrête automatiquement au démontage du composant grâce à `onUnmounted`.
 
-9. Démarrer le serveur de développement Laravel :
+### Pas de hash routing
 
-    ```bash
-    composer run dev
-    ```
+Le cours présentait `useHashRoute` pour naviguer entre composants dans une même application Vue. Ce besoin ne s'est pas présenté : le dashboard alterne entre deux vues (liste et formulaire) avec un simple `v-if`, et la page de vote a un affichage linéaire sans navigation interne.
 
-L'application sera accessible à l'adresse <http://127.0.0.1:8000>.
+### Architecture des endpoints
+
+Tous les endpoints API sont regroupés sous `/api/v1/polls`. Les routes protégées (création, modification, suppression, vote) utilisent le middleware `auth:sanctum` pour l'authentification par session. La route `show` (`GET /api/v1/polls/{token}`) reste publique afin que les personnes non connectées puissent accéder au sondage.
+
+Les résultats (avec le décompte des votes) ne sont inclus dans la réponse que si le sondage est marqué comme public ou si la personne qui consulte en est la créatrice. Dans le cas contraire, seules les options sont renvoyées, sans les votes.
+
+### Vérification de la date de fin côté serveur
+
+Le statut "sondage terminé" est calculé côté backend (champ `is_ended` ajouté à la réponse de `show`) plutôt que côté frontend. Cela évite les soucis de fuseau horaire entre le format SQLite renvoyé par Eloquent et l'interprétation locale de `new Date()` en JavaScript.
+
+### Entrées Vite séparées
+
+Le fichier `vite.config.js` déclare deux entrées distinctes (`poll-dashboard.js` et `poll-vote.js`). Chaque page Blade ne charge que le JavaScript dont elle a besoin via la directive `@vite`.
