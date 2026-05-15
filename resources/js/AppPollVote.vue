@@ -1,6 +1,7 @@
 <script setup>
   import { ref, computed } from 'vue';
   import { useFetchApi } from '@/composables/useFetchApi';
+  import { usePolling } from '@/composables/usePolling';
   import PollVoteForm from './components/PollVoteForm.vue';
   import PollResults from './components/PollResults.vue';
 
@@ -26,15 +27,15 @@
     return opts?.length > 0 && opts[0].votes_count !== undefined;
   });
 
-  async function loadPoll() {
-    error.value = null;
+  async function loadPoll(silent) {
+    if (!silent) error.value = null;
     try {
       const data = await fetchApi({ url: 'polls/' + props.token });
       if (data) poll.value = data;
     } catch (e) {
-      error.value = e?.data?.message || 'Impossible de charger le sondage.';
+      if (!silent) error.value = e?.data?.message || 'Impossible de charger le sondage.';
     } finally {
-      loading.value = false;
+      if (!silent) loading.value = false;
     }
   }
 
@@ -50,10 +51,14 @@
 
   function onVoted(optionIds) {
     mySelection.value = [...optionIds];
-    loadPoll();
+    loadPoll(true);
   }
 
-  loadPoll().then(() => loadMyVote());
+  loadPoll(false).then(() => loadMyVote());
+
+  usePolling(() => {
+    if (poll.value && !poll.value.is_draft) loadPoll(true);
+  }, 5000);
 </script>
 
 <template>
