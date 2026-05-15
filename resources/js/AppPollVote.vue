@@ -1,6 +1,7 @@
 <script setup>
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import { useFetchApi } from '@/composables/useFetchApi';
+  import PollVoteForm from './components/PollVoteForm.vue';
 
   const props = defineProps({
     token: { type: String, required: true },
@@ -13,6 +14,12 @@
   const poll = ref(null);
   const error = ref(null);
   const loading = ref(true);
+  const mySelection = ref([]);
+
+  const isClosed = computed(() => {
+    if (!poll.value) return false;
+    return poll.value.is_draft || (poll.value.ends_at && new Date(poll.value.ends_at) < new Date());
+  });
 
   async function loadPoll() {
     error.value = null;
@@ -26,7 +33,22 @@
     }
   }
 
-  loadPoll();
+  async function loadMyVote() {
+    if (!props.isAuthenticated) return;
+    try {
+      const res = await fetchApi({ url: 'polls/' + props.token + '/my-vote' });
+      if (res?.option_ids) mySelection.value = res.option_ids;
+    } catch (e) {
+      // pas vote, on ignore
+    }
+  }
+
+  function onVoted(optionIds) {
+    mySelection.value = [...optionIds];
+    loadPoll();
+  }
+
+  loadPoll().then(() => loadMyVote());
 </script>
 
 <template>
@@ -40,11 +62,28 @@
         <p class="text-lg mt-2">{{ poll.question }}</p>
       </header>
 
-      <ul class="space-y-2">
-        <li v-for="option in poll.options" :key="option.id" class="p-2 border rounded">
-          {{ option.label }}
-        </li>
-      </ul>
+      <p v-if="poll.is_draft" class="p-3 bg-amber-50 text-amber-800 rounded">
+        Ce sondage n'a pas encore ete lance.
+      </p>
+
+      <div v-else class="space-y-4">
+        <p v-if="isClosed" class="p-3 bg-amber-50 text-amber-800 rounded">
+          Ce sondage est termine. Les votes ne sont plus acceptes.
+        </p>
+
+        <PollVoteForm
+          v-if="isAuthenticated"
+          :poll="poll"
+          :token="token"
+          :initial-selection="mySelection"
+          :is-closed="isClosed"
+          :on-voted="onVoted"
+        />
+        <p v-else class="p-3 bg-blue-50 rounded">
+          <a :href="loginUrl" class="text-blue-700 underline">Connectez-vous</a>
+          pour voter a ce sondage.
+        </p>
+      </div>
     </div>
   </main>
 </template>
