@@ -10,22 +10,6 @@ use Illuminate\Validation\Rule;
 class MyProfileController extends Controller
 {
     /**
-     * Show the form for creating the resource.
-     */
-    public function create(): never
-    {
-        abort(404);
-    }
-
-    /**
-     * Store the newly created resource in storage.
-     */
-    public function store(Request $request): never
-    {
-        abort(404);
-    }
-
-    /**
      * Display the resource.
      */
     public function show()

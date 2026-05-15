@@ -32,8 +32,6 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/auth/login', 'login');
 });
 
-Route::get('/polls/{token}', PollVoteController::class)->where('token', '[A-Za-z0-9]+');
-
 Route::middleware('auth')->group(function () {
     Route::get('/polls/dashboard', PollDashboardController::class)->name('polls.dashboard');
     Route::resource('posts', PostController::class)->except(['index', 'show']);
@@ -42,3 +40,5 @@ Route::middleware('auth')->group(function () {
     Route::resource('tokens', TokenController::class)->only(['index', 'create', 'store', 'destroy']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
+
+Route::get('/polls/{token}', PollVoteController::class)->where('token', '[A-Za-z0-9]+');

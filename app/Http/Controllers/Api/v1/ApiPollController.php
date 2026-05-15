@@ -10,9 +10,6 @@ use Illuminate\Http\Request;
 
 class ApiPollController extends Controller
 {
-    /**
-     * Display a listing of the authenticated user's polls.
-     */
     public function index(Request $request)
     {
         $polls = $request->user()->polls()->orderBy('created_at', 'desc')->get();
@@ -20,9 +17,6 @@ class ApiPollController extends Controller
         return $polls;
     }
 
-    /**
-     * Display the specified poll by its secret token.
-     */
     public function show(Request $request, string $token)
     {
         $user = $request->user();
@@ -213,9 +207,6 @@ class ApiPollController extends Controller
         return ['option_ids' => $ids];
     }
 
-    /**
-     * Remove the specified poll.
-     */
     public function remove(Request $request, int $id)
     {
         $poll = Poll::where('id', $id)->where('user_id', $request->user()->id)->first();
