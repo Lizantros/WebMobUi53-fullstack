@@ -9,10 +9,10 @@
 
     <div
         id="app"
-        data-props='@json([
-            "token" => $token,
-            "isAuthenticated" => $isAuthenticated,
-            "loginUrl" => $loginUrl
-        ])'
+        data-props="{{ json_encode([
+            'token' => $token,
+            'isAuthenticated' => $isAuthenticated,
+            'loginUrl' => $loginUrl,
+        ]) }}"
     ></div>
 </x-vue-app-layout>
