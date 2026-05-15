@@ -2,6 +2,7 @@
   import { ref, computed } from 'vue';
   import { useFetchApi } from '@/composables/useFetchApi';
   import PollVoteForm from './components/PollVoteForm.vue';
+  import PollResults from './components/PollResults.vue';
 
   const props = defineProps({
     token: { type: String, required: true },
@@ -19,6 +20,10 @@
   const isClosed = computed(() => {
     if (!poll.value) return false;
     return poll.value.is_draft || (poll.value.ends_at && new Date(poll.value.ends_at) < new Date());
+  });
+  const canSeeResults = computed(() => {
+    const opts = poll.value?.options;
+    return opts?.length > 0 && opts[0].votes_count !== undefined;
   });
 
   async function loadPoll() {
@@ -82,6 +87,11 @@
         <p v-else class="p-3 bg-blue-50 rounded">
           <a :href="loginUrl" class="text-blue-700 underline">Connectez-vous</a>
           pour voter a ce sondage.
+        </p>
+
+        <PollResults v-if="canSeeResults" :poll="poll" />
+        <p v-else class="p-3 bg-gray-50 text-gray-600 rounded text-sm">
+          Les resultats de ce sondage ne sont pas publics.
         </p>
       </div>
     </div>
