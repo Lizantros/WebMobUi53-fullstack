@@ -20,7 +20,7 @@
 
   const isClosed = computed(() => {
     if (!poll.value) return false;
-    return poll.value.is_draft || (poll.value.ends_at && new Date(poll.value.ends_at) < new Date());
+    return poll.value.is_draft || poll.value.is_ended;
   });
   const canSeeResults = computed(() => {
     const opts = poll.value?.options;

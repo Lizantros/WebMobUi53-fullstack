@@ -42,6 +42,8 @@ class ApiPollController extends Controller
             $poll = Poll::with('options')->where('id', $poll->id)->first();
         }
 
+        $poll->is_ended = $poll->ends_at && now()->timestamp > now()->parse($poll->ends_at)->timestamp;
+
         return $poll;
     }
 
