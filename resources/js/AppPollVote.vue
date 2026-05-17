@@ -45,7 +45,7 @@
       const res = await fetchApi({ url: 'polls/' + props.token + '/my-vote' });
       if (res?.option_ids) mySelection.value = res.option_ids;
     } catch (e) {
-      // pas vote, on ignore
+      // pas voté, on ignore
     }
   }
 
@@ -73,12 +73,12 @@
       </header>
 
       <p v-if="poll.is_draft" class="p-3 bg-amber-50 text-amber-800 rounded">
-        Ce sondage n'a pas encore ete lance.
+        Ce sondage n'a pas encore été lancé.
       </p>
 
       <div v-else class="space-y-4">
         <p v-if="isClosed" class="p-3 bg-amber-50 text-amber-800 rounded">
-          Ce sondage est termine. Les votes ne sont plus acceptes.
+          Ce sondage est terminé. Les votes ne sont plus acceptés.
         </p>
 
         <PollVoteForm
@@ -91,12 +91,12 @@
         />
         <p v-else class="p-3 bg-blue-50 rounded">
           <a :href="loginUrl" class="text-blue-700 underline">Connectez-vous</a>
-          pour voter a ce sondage.
+          pour voter à ce sondage.
         </p>
 
         <PollResults v-if="canSeeResults" :poll="poll" />
         <p v-else class="p-3 bg-gray-50 text-gray-600 rounded text-sm">
-          Les resultats de ce sondage ne sont pas publics.
+          Les résultats de ce sondage ne sont pas publics.
         </p>
       </div>
     </div>

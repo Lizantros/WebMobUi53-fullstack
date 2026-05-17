@@ -20,7 +20,7 @@
 <template>
   <section class="p-4 bg-white rounded shadow">
     <header class="mb-3 flex items-center justify-between">
-      <h2 class="font-bold">Resultats</h2>
+      <h2 class="font-bold">Résultats</h2>
       <span class="text-sm text-gray-500">{{ totalVotes }} vote(s)</span>
     </header>
 

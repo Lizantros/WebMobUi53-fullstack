@@ -47,7 +47,7 @@
         <tr v-for="poll in polls" :key="poll.id" class="border-t">
           <td class="px-3 py-2">{{ poll.title || '-' }}</td>
           <td class="px-3 py-2">{{ poll.question }}</td>
-          <td class="px-3 py-2">{{ poll.is_draft ? 'Brouillon' : 'Lance' }}</td>
+          <td class="px-3 py-2">{{ poll.is_draft ? 'Brouillon' : 'Lancé' }}</td>
           <td class="px-3 py-2 flex flex-wrap gap-2">
             <button v-if="poll.is_draft" @click="openEdit(poll)" class="px-2 py-1 bg-gray-200 rounded text-sm">Modifier</button>
             <button v-if="poll.is_draft" @click="onLaunch(poll)" class="px-2 py-1 bg-teal-600 text-white rounded text-sm">Lancer</button>

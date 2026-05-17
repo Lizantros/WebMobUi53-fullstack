@@ -46,7 +46,7 @@
     try {
       const res = await fetchApi({ url: 'polls/' + props.token + '/votes', method: 'POST', data: { option_ids: ids } });
       if (res) {
-        ok.value = 'Vote enregistre.';
+        ok.value = 'Vote enregistré.';
         if (typeof props.onVoted === 'function') props.onVoted(ids);
       }
     } catch (e) {
@@ -59,8 +59,8 @@
 
 <template>
   <form @submit.prevent="onSubmit" class="space-y-3 p-4 bg-white rounded shadow">
-    <p v-if="isClosed" class="text-amber-700 bg-amber-50 p-2 rounded">Ce sondage est ferme.</p>
-    <p v-if="!isClosed && hasVoted && !poll.allow_vote_change" class="text-blue-700 bg-blue-50 p-2 rounded">Vous avez deja vote.</p>
+    <p v-if="isClosed" class="text-amber-700 bg-amber-50 p-2 rounded">Ce sondage est fermé.</p>
+    <p v-if="!isClosed && hasVoted && !poll.allow_vote_change" class="text-blue-700 bg-blue-50 p-2 rounded">Vous avez déjà voté.</p>
 
     <ul class="space-y-2">
       <li v-for="option in poll.options" :key="option.id">

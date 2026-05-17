@@ -97,15 +97,15 @@
     </div>
 
     <fieldset class="space-y-2">
-      <legend class="text-sm font-medium">Parametres</legend>
-      <label class="flex items-center gap-2"><input type="checkbox" v-model="allowMultiple" /> Plusieurs choix autorises</label>
-      <label class="flex items-center gap-2"><input type="checkbox" v-model="allowChange" /> Le vote peut etre modifie</label>
-      <label class="flex items-center gap-2"><input type="checkbox" v-model="isPublic" /> Resultats publics</label>
-      <label class="flex items-center gap-2"><input type="checkbox" v-model="launchNow" /> Lancer immediatement</label>
+      <legend class="text-sm font-medium">Paramètres</legend>
+      <label class="flex items-center gap-2"><input type="checkbox" v-model="allowMultiple" /> Plusieurs choix autorisés</label>
+      <label class="flex items-center gap-2"><input type="checkbox" v-model="allowChange" /> Le vote peut être modifié</label>
+      <label class="flex items-center gap-2"><input type="checkbox" v-model="isPublic" /> Résultats publics</label>
+      <label class="flex items-center gap-2"><input type="checkbox" v-model="launchNow" /> Lancer immédiatement</label>
     </fieldset>
 
     <div>
-      <label class="block text-sm font-medium mb-1">Duree (minutes, optionnel)</label>
+      <label class="block text-sm font-medium mb-1">Durée (minutes, optionnel)</label>
       <input v-model="durationMin" type="number" min="1" class="w-40 px-3 py-2 border rounded" />
     </div>
 
@@ -113,7 +113,7 @@
 
     <div class="flex gap-2">
       <button type="submit" :disabled="submitting" class="px-4 py-2 bg-teal-600 text-white rounded">
-        {{ submitting ? 'Enregistrement...' : (isEdit ? 'Enregistrer' : 'Creer le sondage') }}
+        {{ submitting ? 'Enregistrement...' : (isEdit ? 'Enregistrer' : 'Créer le sondage') }}
       </button>
       <button type="button" @click="backToList" class="px-4 py-2 bg-gray-200 rounded">Annuler</button>
     </div>
