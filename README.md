@@ -8,7 +8,15 @@ L'application permet à une personne connectée de créer des sondages, d'en dé
 
 Une fois le sondage lancé, un lien de partage contenant un token secret est disponible. Les personnes qui ouvrent ce lien peuvent voter (si connectées) et consulter les résultats si le créateur les a rendus publics.
 
-Les résultats s'affichent en direct via un polling toutes les 5 secondes, avec une visualisation sous forme de barres de progression.
+Les résultats s'affichent en direct via un polling toutes les 5 secondes, avec une visualisation sous forme de barres de progression. L'interface est responsive et pensée mobile first.
+
+## Prérequis
+
+- PHP 8.2 ou plus
+- Node 18 ou plus
+- Composer
+
+Le projet tourne sur Laravel 12 et Vue 3.5, avec SQLite comme base de données (configuration par défaut dans `.env.example`).
 
 ## Installer
 
@@ -19,12 +27,17 @@ cp .env.example .env
 php artisan key:generate
 php artisan storage:link
 php artisan migrate
-```
-
-Données de test (optionnel) :
-```bash
 php artisan db:seed
 ```
+
+Le seed crée deux comptes de test, utiles pour explorer rapidement l'app :
+
+| Email | Mot de passe |
+| --- | --- |
+| `john.doe@example.com` | `password` |
+| `jane.doe@example.com` | `password` |
+
+Le compte de John contient également dix sondages en brouillon, pratiques pour tester l'édition et le lancement.
 
 ## Lancer
 
@@ -36,9 +49,17 @@ Puis ouvrir http://localhost:8000.
 
 ## Utilisation
 
-Le dashboard des sondages est accessible via `/polls/dashboard` (connexion requise).
+Le dashboard des sondages est accessible via `/polls/dashboard` (connexion requise). Un lien « Sondages » apparaît dans la navbar dès qu'on est connecté.
 
 Le système d'authentification (inscription, connexion, déconnexion) faisait déjà partie du projet de base et n'a pas été modifié.
+
+### Scénario de test rapide
+
+1. Se connecter avec `john.doe@example.com` / `password`.
+2. Aller sur `/polls/dashboard`, cliquer « Nouveau sondage ».
+3. Saisir une question + au moins deux options, cocher « Lancer immédiatement » et « Résultats publics », valider.
+4. Dans la liste, cliquer « Partager » pour récupérer le lien.
+5. Ouvrir le lien dans un onglet de navigation privée pour vérifier l'accès anonyme aux résultats publics, puis dans une autre session connectée pour voter.
 
 ## Choix techniques
 

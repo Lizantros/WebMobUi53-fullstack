@@ -16,7 +16,7 @@
   }
 
   async function onDelete(id) {
-    if (!confirm('Supprimer ce sondage ?')) return;
+    if (!confirm('Souhaitez-vous vraiment supprimer ce sondage ?')) return;
     await deletePoll(id);
   }
 
@@ -27,37 +27,57 @@
 </script>
 
 <template>
-  <p v-if="polls.length === 0" class="text-gray-500">Aucun sondage pour l'instant.</p>
+  <div v-if="polls.length === 0" class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+    <p class="text-gray-500 dark:text-gray-400">Aucun sondage pour l'instant.</p>
+  </div>
 
-  <div v-if="polls.length > 0">
-    <div v-if="expandedSharePoll" class="mb-4">
-      <PollShareLink :poll="expandedSharePoll" />
-    </div>
+  <div v-else class="space-y-4">
+    <PollShareLink v-if="expandedSharePoll" :poll="expandedSharePoll" />
 
-    <table class="w-full border-collapse text-left bg-white shadow rounded overflow-hidden">
-      <thead class="bg-gray-100">
-        <tr>
-          <th class="px-3 py-2">Titre</th>
-          <th class="px-3 py-2">Question</th>
-          <th class="px-3 py-2">Statut</th>
-          <th class="px-3 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="poll in polls" :key="poll.id" class="border-t">
-          <td class="px-3 py-2">{{ poll.title || '-' }}</td>
-          <td class="px-3 py-2">{{ poll.question }}</td>
-          <td class="px-3 py-2">{{ poll.is_draft ? 'Brouillon' : 'Lancé' }}</td>
-          <td class="px-3 py-2 flex flex-wrap gap-2">
-            <button v-if="poll.is_draft" @click="openEdit(poll)" class="px-2 py-1 bg-gray-200 rounded text-sm">Modifier</button>
-            <button v-if="poll.is_draft" @click="onLaunch(poll)" class="px-2 py-1 bg-teal-600 text-white rounded text-sm">Lancer</button>
-            <button @click="toggleShare(poll.id)" class="px-2 py-1 bg-blue-600 text-white rounded text-sm">
-              {{ expandedShareId === poll.id ? 'Masquer' : 'Partager' }}
-            </button>
-            <button @click="onDelete(poll.id)" class="px-2 py-1 bg-red-600 text-white rounded text-sm">Supprimer</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <article class="bg-white dark:bg-slate-800 rounded-lg shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Titre</th>
+              <th class="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Question</th>
+              <th class="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Statut</th>
+              <th class="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="poll in polls" :key="poll.id" class="border-b border-gray-100 dark:border-gray-800">
+              <td class="px-4 py-3 text-sm dark:text-white">{{ poll.title || '-' }}</td>
+              <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ poll.question }}</td>
+              <td class="px-4 py-3">
+                <span class="px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300">
+                  {{ poll.is_draft ? 'Brouillon' : 'Lancé' }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex flex-wrap gap-2">
+                  <button v-if="poll.is_draft" @click="openEdit(poll)"
+                    class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer">
+                    Modifier
+                  </button>
+                  <button v-if="poll.is_draft" @click="onLaunch(poll)"
+                    class="px-3 py-1 text-sm bg-teal-600 dark:bg-purple-900 text-white rounded hover:bg-teal-700 dark:hover:bg-purple-800 cursor-pointer">
+                    Lancer
+                  </button>
+                  <button @click="toggleShare(poll.id)"
+                    class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer">
+                    {{ expandedShareId === poll.id ? 'Masquer' : 'Partager' }}
+                  </button>
+                  <button @click="onDelete(poll.id)"
+                    class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer">
+                    Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
   </div>
 </template>

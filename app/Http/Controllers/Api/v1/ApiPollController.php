@@ -36,7 +36,7 @@ class ApiPollController extends Controller
             $poll = Poll::with('options')->where('id', $poll->id)->first();
         }
 
-        $poll->is_ended = $poll->ends_at && now()->timestamp > now()->parse($poll->ends_at)->timestamp;
+        $poll->is_ended = $poll->ends_at && $poll->ends_at < now();
 
         return $poll;
     }
@@ -66,7 +66,7 @@ class ApiPollController extends Controller
 
         if (!$poll->is_draft) {
             $poll->started_at = now();
-            $poll->ends_at = $poll->duration ? now()->parse('@' . (now()->timestamp + $poll->duration)) : null;
+            $poll->ends_at = $poll->duration ? now()->addSeconds($poll->duration) : null;
         }
 
         $poll->save();
@@ -111,7 +111,7 @@ class ApiPollController extends Controller
 
         if (!$poll->is_draft) {
             $poll->started_at = now();
-            $poll->ends_at = $poll->duration ? now()->parse('@' . (now()->timestamp + $poll->duration)) : null;
+            $poll->ends_at = $poll->duration ? now()->addSeconds($poll->duration) : null;
         }
 
         $poll->save();
@@ -139,7 +139,7 @@ class ApiPollController extends Controller
             return response()->json(['message' => 'Poll is not started.'], 422);
         }
 
-        if ($poll->ends_at && now()->timestamp > now()->parse($poll->ends_at)->timestamp) {
+        if ($poll->ends_at && $poll->ends_at < now()) {
             return response()->json(['message' => 'Poll is closed.'], 422);
         }
 
@@ -152,13 +152,7 @@ class ApiPollController extends Controller
             $validOptionIds[] = $option->id;
         }
         foreach ($validated['option_ids'] as $oid) {
-            $found = false;
-            foreach ($validOptionIds as $vid) {
-                if ($oid == $vid) {
-                    $found = true;
-                }
-            }
-            if (!$found) {
+            if (!in_array($oid, $validOptionIds)) {
                 return response()->json(['message' => 'Invalid option.'], 422);
             }
         }

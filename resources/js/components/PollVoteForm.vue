@@ -7,8 +7,9 @@
     token: { type: String, required: true },
     initialSelection: { type: Array, default: () => [] },
     isClosed: { type: Boolean, default: false },
-    onVoted: { type: Function, default: null },
   });
+
+  const emit = defineEmits(['voted']);
 
   const { fetchApi } = useFetchApi();
 
@@ -47,7 +48,7 @@
       const res = await fetchApi({ url: 'polls/' + props.token + '/votes', method: 'POST', data: { option_ids: ids } });
       if (res) {
         ok.value = 'Vote enregistré.';
-        if (typeof props.onVoted === 'function') props.onVoted(ids);
+        emit('voted', ids);
       }
     } catch (e) {
       error.value = e?.data?.message || 'Erreur lors du vote.';
@@ -58,39 +59,50 @@
 </script>
 
 <template>
-  <form @submit.prevent="onSubmit" class="space-y-3 p-4 bg-white rounded shadow">
-    <p v-if="isClosed" class="text-amber-700 bg-amber-50 p-2 rounded">Ce sondage est fermé.</p>
-    <p v-if="!isClosed && hasVoted && !poll.allow_vote_change" class="text-blue-700 bg-blue-50 p-2 rounded">Vous avez déjà voté.</p>
+  <article class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+    <form @submit.prevent="onSubmit">
+      <div v-if="isClosed" class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-md">
+        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Ce sondage est fermé.</p>
+      </div>
+      <div v-if="!isClosed && hasVoted && !poll.allow_vote_change" class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-md">
+        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Vous avez déjà voté.</p>
+      </div>
 
-    <ul class="space-y-2">
-      <li v-for="option in poll.options" :key="option.id">
-        <label class="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-gray-50">
-          <input
-            v-if="poll.allow_multiple_choices"
-            type="checkbox"
-            :value="option.id"
-            :checked="inMultiple(option.id)"
-            :disabled="locked"
-            @change="toggle(option.id)"
-          />
-          <input
-            v-if="!poll.allow_multiple_choices"
-            type="radio"
-            name="vote-option"
-            :value="option.id"
-            v-model="single"
-            :disabled="locked"
-          />
-          <span>{{ option.label }}</span>
-        </label>
-      </li>
-    </ul>
+      <ul class="space-y-2 mb-4">
+        <li v-for="option in poll.options" :key="option.id">
+          <label class="flex items-center gap-2 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-slate-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600">
+            <input
+              v-if="poll.allow_multiple_choices"
+              type="checkbox"
+              :value="option.id"
+              :checked="inMultiple(option.id)"
+              :disabled="locked"
+              @change="toggle(option.id)"
+            />
+            <input
+              v-if="!poll.allow_multiple_choices"
+              type="radio"
+              name="vote-option"
+              :value="option.id"
+              v-model="single"
+              :disabled="locked"
+            />
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ option.label }}</span>
+          </label>
+        </li>
+      </ul>
 
-    <p v-if="error" class="text-red-600 text-sm">{{ error }}</p>
-    <p v-if="ok" class="text-green-700 text-sm">{{ ok }}</p>
+      <p v-if="error" class="mt-1 mb-3 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+      <div v-if="ok" class="mb-3 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-md">
+        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ ok }}</p>
+      </div>
 
-    <button type="submit" :disabled="!canSubmit || submitting" class="px-4 py-2 bg-teal-600 text-white rounded disabled:opacity-50">
-      {{ submitting ? 'Envoi...' : (hasVoted ? 'Modifier mon vote' : 'Voter') }}
-    </button>
-  </form>
+      <footer class="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button type="submit" :disabled="!canSubmit || submitting"
+          class="px-4 py-2 bg-teal-600 dark:bg-purple-900 text-white rounded-md hover:bg-teal-700 dark:hover:bg-purple-800 cursor-pointer disabled:opacity-50">
+          {{ submitting ? 'Envoi...' : (hasVoted ? 'Modifier mon vote' : 'Voter') }}
+        </button>
+      </footer>
+    </form>
+  </article>
 </template>

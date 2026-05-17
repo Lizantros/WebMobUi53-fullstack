@@ -1,8 +1,4 @@
-<x-vue-app-layout>
-    <x-slot:scripts>
-        @vite(['resources/js/poll-vote.js'])
-    </x-slot>
-
+<x-default-layout>
     <x-slot:title>
         Sondage
     </x-slot>
@@ -15,4 +11,6 @@
             'loginUrl' => $loginUrl,
         ]) }}"
     ></div>
-</x-vue-app-layout>
+
+    @vite(['resources/js/poll-vote.js'])
+</x-default-layout>

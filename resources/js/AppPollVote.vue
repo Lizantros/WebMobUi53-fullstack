@@ -62,24 +62,30 @@
 </script>
 
 <template>
-  <main class="max-w-2xl mx-auto p-6 space-y-4">
-    <p v-if="loading" class="text-gray-500">Chargement...</p>
-    <p v-if="!loading && error" class="text-red-600">{{ error }}</p>
+  <div class="space-y-4">
+    <p v-if="loading" class="text-gray-500 dark:text-gray-400">Chargement...</p>
+    <p v-if="!loading && error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
 
     <div v-if="!loading && !error && poll" class="space-y-4">
-      <header>
-        <h1 v-if="poll.title" class="text-2xl font-bold">{{ poll.title }}</h1>
-        <p class="text-lg mt-2">{{ poll.question }}</p>
-      </header>
+      <article class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-6">
+        <header>
+          <h1 v-if="poll.title" class="text-2xl font-bold text-gray-900 dark:text-white">{{ poll.title }}</h1>
+          <p class="text-lg mt-2 text-gray-700 dark:text-gray-300">{{ poll.question }}</p>
+        </header>
+      </article>
 
-      <p v-if="poll.is_draft" class="p-3 bg-amber-50 text-amber-800 rounded">
-        Ce sondage n'a pas encore été lancé.
-      </p>
-
-      <div v-else class="space-y-4">
-        <p v-if="isClosed" class="p-3 bg-amber-50 text-amber-800 rounded">
-          Ce sondage est terminé. Les votes ne sont plus acceptés.
+      <div v-if="poll.is_draft" class="p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-md">
+        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+          Ce sondage n'a pas encore été lancé.
         </p>
+      </div>
+
+      <template v-else>
+        <div v-if="isClosed" class="p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-md">
+          <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+            Ce sondage est terminé. Les votes ne sont plus acceptés.
+          </p>
+        </div>
 
         <PollVoteForm
           v-if="isAuthenticated"
@@ -87,18 +93,20 @@
           :token="token"
           :initial-selection="mySelection"
           :is-closed="isClosed"
-          :on-voted="onVoted"
+          @voted="onVoted"
         />
-        <p v-else class="p-3 bg-blue-50 rounded">
-          <a :href="loginUrl" class="text-blue-700 underline">Connectez-vous</a>
-          pour voter à ce sondage.
-        </p>
+        <div v-else class="p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-400 dark:border-yellow-600 rounded-md">
+          <p class="text-sm text-yellow-800 dark:text-yellow-200">
+            <a :href="loginUrl" class="font-medium underline">Connectez-vous</a>
+            pour voter à ce sondage.
+          </p>
+        </div>
 
         <PollResults v-if="canSeeResults" :poll="poll" />
-        <p v-else class="p-3 bg-gray-50 text-gray-600 rounded text-sm">
+        <p v-else class="text-sm text-gray-500 dark:text-gray-400">
           Les résultats de ce sondage ne sont pas publics.
         </p>
-      </div>
+      </template>
     </div>
-  </main>
+  </div>
 </template>

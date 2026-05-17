@@ -1,8 +1,4 @@
-<x-vue-app-layout>
-    <x-slot:scripts>
-        @vite(['resources/js/poll-dashboard.js'])
-    </x-slot>
-
+<x-default-layout>
     <x-slot:title>
         Sondages
     </x-slot>
@@ -15,4 +11,6 @@
             'username' => 'test name',
         ]) }}"
     ></div>
-</x-vue-app-layout>
+
+    @vite(['resources/js/poll-dashboard.js'])
+</x-default-layout>
